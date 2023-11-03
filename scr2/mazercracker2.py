@@ -17,28 +17,26 @@ for line in f:
         END_Y = lines
     lines += 1
 
-MAX_WIDTH = 1000
-MAX_HEIGHT = 1000
-
+WIDTH = len(maze[0])
+HEIGHT = len(maze)
 TILE_SIZE = 50
-
-scale_factor = min(MAX_WIDTH / (len(maze[0]) * TILE_SIZE), MAX_HEIGHT / (len(maze) * TILE_SIZE))
-
-WIDTH = min(int(len(maze[0]) * TILE_SIZE * scale_factor), MAX_WIDTH)
-HEIGHT = min(int(len(maze) * TILE_SIZE * scale_factor), MAX_HEIGHT)
 
 pygame.init()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((TILE_SIZE * WIDTH, TILE_SIZE * HEIGHT))
+
 
 class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
+
     def __str__(self):
         return f'(x: {self.x}, y: {self.y})'
+
 
 class Node():
     def __init__(self, parent=None, position=None):
@@ -51,14 +49,17 @@ class Node():
 
     def __eq__(self, other):
         return self.position == other.position
+
     def __str__(self):
         return f"{self.position}"
+
 
 def getNeighbours(maze, x, y, parentNode, closed_nodes):
     neighbors = []
     height, width = len(maze), len(maze[0])
 
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    # directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)] # directions for diagonals
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # directions for up, down, right, left
 
     for dx, dy in directions:
         new_x, new_y = x + dx, y + dy
@@ -69,23 +70,29 @@ def getNeighbours(maze, x, y, parentNode, closed_nodes):
 
     return neighbors
 
+
 def drawGrid(TILE_SIZE, WIDTH, HEIGHT):
-    for x in range(0, WIDTH, int(TILE_SIZE * scale_factor)):
-        for y in range(0, HEIGHT, int(TILE_SIZE * scale_factor)):
-            if maze[int(y / (TILE_SIZE * scale_factor))][int(x / (TILE_SIZE * scale_factor))] == '1':
-                rect = pygame.Rect(x, y, int(TILE_SIZE * scale_factor), int(TILE_SIZE * scale_factor))
+    for x in range(0, TILE_SIZE * WIDTH, TILE_SIZE):
+        for y in range(0, TILE_SIZE * HEIGHT, TILE_SIZE):
+            if maze[y // TILE_SIZE][x // TILE_SIZE] == '1':
+                rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(screen, DARK_GRAY, rect)
             else:
-                rect = pygame.Rect(x, y, int(TILE_SIZE * scale_factor), int(TILE_SIZE * scale_factor))
+                rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(screen, DARK_GRAY, rect, 1)
 
-def drawLine(TILE_SIZE,path):
-    circle_radius = int(0.3 * TILE_SIZE * scale_factor)
-    for point in path:
-        x, y = point.x, point.y
-        x_pixel = x * TILE_SIZE * scale_factor + 0.5 * TILE_SIZE * scale_factor
-        y_pixel = y * TILE_SIZE * scale_factor + 0.5 * TILE_SIZE * scale_factor
-        pygame.draw.circle(screen, RED, (int(x_pixel), int(y_pixel)), circle_radius)
+
+def drawLine(TILE_SIZE, WIDTH, HEIGHT, path):
+    for x in range(0, TILE_SIZE * WIDTH, TILE_SIZE):
+        for y in range(0, TILE_SIZE * HEIGHT, TILE_SIZE):
+            if Point(x // TILE_SIZE, y // TILE_SIZE) in path:
+                # rect = pygame.Rect(x + 30, y + 30, TILE_SIZE-60, TILE_SIZE-60) #dotted line
+                # rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE) #thick line
+
+                pygame.draw.circle(screen, RED, [x + 0.5 * TILE_SIZE, y + 0.5 * TILE_SIZE],
+                                   TILE_SIZE - 0.75 * TILE_SIZE, 0)  # circle
+                # pygame.draw.rect(screen, RED, rect)
+
 
 def pathFind(start, end):
     open_paths = []
@@ -127,18 +134,19 @@ def pathFind(start, end):
             child.f = child.g + child.h
 
             if child in open_paths:
+                # if child == openNode and child.f > openNode.f:
                 continue
 
             open_paths.append(child)
 
+
 running = True
 
-if HEIGHT - 1 > END_Y > 0 and HEIGHT - 1 > START_Y > 0:
+if len(maze) - 1 > END_Y > 0 and len(maze) - 1 > START_Y > 0:
     path = pathFind(START_Y, END_Y)
 else:
     print("No solutions exist!")
 msgShown = False
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -147,11 +155,13 @@ while running:
     screen.fill(LIGHT_GRAY)
 
     drawGrid(TILE_SIZE, WIDTH, HEIGHT)
-    if path is not None:
-        drawLine(TILE_SIZE, path)
+    if path != None:
+
+        drawLine(TILE_SIZE, WIDTH, HEIGHT, path)
     else:
         if not msgShown:
             print("No solutions exist!")
             msgShown = True
 
     pygame.display.update()
+
