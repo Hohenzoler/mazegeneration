@@ -29,14 +29,14 @@ class Maze:
             self.screen.fill((0, 0, 0))
 
             current_x, current_y = self.position[-1]
-            self.maze[current_y][current_x] = 1
+            self.maze[current_y][current_x] = 0
 
             random.shuffle(self.directions)
 
             for dx, dy in self.directions:
                 new_x, new_y = current_x + dx, current_y + dy
-                if self.is_valid(new_x, new_y) and self.maze[new_y][new_x] == 0:
-                    self.maze[current_y + dy // 2][current_x + dx // 2] = 1
+                if self.is_valid(new_x, new_y) and self.maze[new_y][new_x] == 1:
+                    self.maze[current_y + dy // 2][current_x + dx // 2] = 0
                     self.position.append((new_x, new_y))
                     break
             else:
@@ -51,7 +51,7 @@ class Maze:
     def draw(self):
         for x in range(self.gwidth):
             for y in range(self.gheight):
-                if self.maze[y][x] == 1:
+                if self.maze[y][x] == 0:
                     pygame.draw.rect(self.screen, (255, 255, 255), (x * self.cell, y * self.cell, self.cell, self.cell))
                 if (x, y) == self.entrance:
                     pygame.draw.rect(self.screen, (0, 255, 0), (x * self.cell, y * self.cell, self.cell, self.cell))
@@ -60,7 +60,7 @@ class Maze:
 
 
     def generategrid(self):
-        self.maze = [[0 for _ in range(self.gwidth)] for _ in range(self.gheight)]
+        self.maze = [[1 for _ in range(self.gwidth)] for _ in range(self.gheight)]
 
     def is_valid(self, x, y):
         return 0 <= x < self.gwidth and 0 <= y < self.gheight
