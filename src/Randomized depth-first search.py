@@ -4,18 +4,21 @@ import random
 pygame.init()
 
 class Maze:
-    def __init__(self, width, height, cell):
-        self.height = height
-        self.width = width
-        self.screen = pygame.display.set_mode((width, height))
+    def __init__(self, gwidth, gheight):
+        self.height = 1000
+        self.width = 1000
+        self.screen = pygame.display.set_mode((self.width, self.height))
         self.clock = pygame.time.Clock()
         self.run = True
-        self.cell = cell
-        self.gwidth = self.width // self.cell
-        self.gheight = self.height // self.cell
+        self.cell = self.width//gwidth
+        self.gwidth = gwidth
+        self.gheight = gheight
         self.directions = [(0, -2), (0, 2), (-2, 0), (2, 0)]
         self.position = [(0, 0)]
         self.generategrid()
+
+        if self.width//self.gwidth > self.height//self.gheight:
+            self.cell = self.height//self.gheight
 
         self.entrance = (0, 0)
         self.exit = (self.gwidth - 2, self.gheight - 2)
@@ -77,5 +80,5 @@ class Maze:
 
 
 if __name__ == "__main__":
-    maze = Maze(800, 800, 20)
+    maze = Maze(20, 20)
     maze.mainloop()
